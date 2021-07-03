@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: lmsng
+  name: lmsng-deployment
+  labels:
+    app: lmsng
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lmsng
+  template:
+    metadata:
+      labels:
+        app: lmsng
+    spec:
+      containers:
+        - name: mariadb
+          image: mariadb
+          ports:
+            - containerPort: 3306
+              name: db-port
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: my-password
+            - name: MARIADB_DATABASE
+              value: lmsng
+        - name: lmsng
+          image: lmsng
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: app-port
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: lmsng
+  name: jboss-deployment
+  labels:
+    app: lmsng
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jboss
+  template:
+    metadata:
+      labels:
+        app: jboss
+    spec:
+      containers:
+        - name: jboss
+          image: jboss
+          imagePullPolicy: IfNotPresent
+          command: ["/opt/jboss/wildfly/bin/standalone.sh","-c","standalone-full.xml","-b","0.0.0.0","-bmanagement","0.0.0.0"]
+          ports:
+            - containerPort: 9990
+              name: admin
+            - containerPort: 8080
+              name: app
+---
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: lmsng-svc
+    namespace: lmsng
+    labels:
+      app: mariadb
+      type: database
+  spec:
+    ports:
+    - port: 3306
+      protocol: TCP
+      targetPort: 3306
+      name: db-port
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+      name: app-port
+    selector:
+      app: lmsng
+    type: LoadBalancer
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: jboss-svc
+    namespace: lmsng
+    labels:
+      app: jboss
+  spec:
+    ports:
+      - port: 9990
+        protocol: TCP
+        targetPort: 9990
+        name: admin
+      - port: 9090
+        protocol: TCP
+        targetPort: 8080
+        name: app
+    selector:
+      app: jboss
+    type: LoadBalancer
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+---

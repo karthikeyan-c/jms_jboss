@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<context>
+    <ResourceLink auth="Container" name="/MariaDB" global="/MariaDB" type="javax.sql.DataSource" />
+    <ResourceLink auth="Container" name="jboss/myconnection" global="jboss/myconnection" type="javax.jms.ConnectionFactory" />
+</context>

@@ -1,0 +1,4 @@
+#docker build -t lmsng:latest .
+#docker push lmsng:latest
+#kubectl apply -f lmsng_k8s.yaml
+docker build -t jboss -f Dockerfile_jboss .

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: lmsng
+  name: maria-deployment
+  namespace: lmsng
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: maria
+  template:
+    metadata:
+      labels:
+        app: maria
+    spec:
+      containers:
+      - env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: my-password
+        - name: MARIADB_DATABASE
+          value: lmsng
+        image: mariadb
+        imagePullPolicy: IfNotPresent
+        name: mariadb
+        ports:
+        - containerPort: 3306
+          name: db-port
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mariadb
+    type: database
+  name: maria-svc
+  namespace: lmsng
+spec:
+  ports:
+  - name: db-port
+    port: 3307
+    protocol: TCP
+    targetPort: 3306
+  selector:
+    app: maria
+  type: LoadBalancer
